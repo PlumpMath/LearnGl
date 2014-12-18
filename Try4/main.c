@@ -6,9 +6,14 @@
 #include "LoadShaders.h"
 
 GLuint program;
-GLint attribute_coord2d, attribute_v_color;
-GLuint vbo_triangle, vbo_triangle_colors;
+GLuint vbo_triangle;
+GLint attribute_coord3d, attribute_v_color;
 GLint uniform_fade;
+
+struct attributes {
+  GLfloat coord3d[3];
+  GLfloat v_color[3];
+};
 
 int main(void)
 {
@@ -53,81 +58,76 @@ int main(void)
     return 0;
   }
 
-  GLfloat triangle_attributes[] = {
-     0.0,  0.8,   1.0, 1.0, 0.0,
-    -0.8, -0.8,   0.0, 1.0, 1.0,
-     0.8, -0.8,   1.0, 0.0, 0.0,
+  struct attributes triangle_attributes[] = {
+    {{ 0.0,  0.8, 0.0}, {1.0, 1.0, 0.0}},
+    {{-0.8, -0.8, 0.0}, {0.0, 0.0, 1.0}},
+    {{ 0.8, -0.8, 0.0}, {1.0, 0.0, 0.0}}
   };
+  
   glGenBuffers(1, &vbo_triangle);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
   glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_attributes), triangle_attributes, GL_STATIC_DRAW);
 
-  const char* attribute_name = "coord2d";
-  attribute_coord2d = glGetAttribLocation(program, attribute_name);
-  if (attribute_coord2d == -1) {
+  const char* attribute_name = "coord3d";
+  attribute_coord3d = glGetAttribLocation(program, attribute_name);
+  if (attribute_coord3d == -1) {
     fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
     return 0;
   }
 
-  const char* attribute_name2 = "v_color";
-  attribute_v_color = glGetAttribLocation(program, attribute_name2);
+  attribute_name = "v_color";
+  attribute_v_color = glGetAttribLocation(program, attribute_name);
   if (attribute_v_color == -1) {
-    fprintf(stderr, "Could not bind attribute %s\n", attribute_name2);
+    fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
     return 0;
   }
 
-   const char* uniform_name;
-   uniform_name = "fade";
-   uniform_fade = glGetUniformLocation(program, uniform_name);
-   if (uniform_fade == -1) {
-     fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
-     return 0;
-   }
-
-   int t = 1;
+  int t = 1;
    
   /* Loop until the user closes the window */
-  while (!glfwWindowShouldClose(window))
-    {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  while (!glfwWindowShouldClose(window)) {
+    t += 1;
+    float fade = 0.5f + cosf(t * 0.1f) * 0.5f;
+    glUniform1f(uniform_fade, fade);
       
-      glClearColor(1.0, 1.0, 1.0, 1.0);
-      glClear(GL_COLOR_BUFFER_BIT);
- 
-      glUseProgram(program);
-
-      t += 1;
-      float fade = 0.5f + cosf(t * 0.1f) * 0.5f;
-      glUniform1f(uniform_fade, fade);
-
-      glEnableVertexAttribArray(attribute_coord2d);
-      glEnableVertexAttribArray(attribute_v_color);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       
-      glVertexAttribPointer(
-			    attribute_coord2d, // attribute
-			    2,                 // number of elements per vertex, here (x,y)
-			    GL_FLOAT,          // the type of each element
-			    GL_FALSE,          // take our values as-is
-			    5 * sizeof(GLfloat),
-			    0                  // offset of first element
-			    );
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
  
-      glVertexAttribPointer(
-			    attribute_v_color, // attribute
-			    3,                 // number of elements per vertex, here (x,y)
-			    GL_FLOAT,          // the type of each element
-			    GL_FALSE,          // take our values as-is
-			    5 * sizeof(GLfloat),                 // no extra data between each position
-			    (GLvoid*) (2 * sizeof(GLfloat))
-			    );
+    glUseProgram(program);
 
-      glDrawArrays(GL_TRIANGLES, 0, 3);
+    glEnableVertexAttribArray(attribute_coord3d);
+    glEnableVertexAttribArray(attribute_v_color);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+    glVertexAttribPointer(
+			  attribute_coord3d,   // attribute
+			  3,                   // number of elements per vertex, here (x,y,z)
+			  GL_FLOAT,            // the type of each element
+			  GL_FALSE,            // take our values as-is
+			  sizeof(struct attributes),  // next coord3d appears every 5 floats
+			  0                    // offset of first element
+			  );
+    glVertexAttribPointer(
+			  attribute_v_color,      // attribute
+			  3,                      // number of elements per vertex, here (r,g,b)
+			  GL_FLOAT,               // the type of each element
+			  GL_FALSE,               // take our values as-is
+			  sizeof(struct attributes),  // stride
+			  //(void*) (2 * sizeof(GLfloat))     // offset of first element
+			  (void*) offsetof(struct attributes, v_color)  // offset
+			  );
  
-      glfwSwapBuffers(window);
-      glfwPollEvents();
-    }
+    /* Push each element in buffer_vertices to the vertex shader */
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+ 
+    glDisableVertexAttribArray(attribute_coord3d);
+    glDisableVertexAttribArray(attribute_v_color);
+ 
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+  }
 
   glDeleteProgram(program);
   glDeleteBuffers(1, &vbo_triangle);
