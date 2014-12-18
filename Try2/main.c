@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 GLuint program;
 GLint attribute_coord2d, attribute_v_color;
 GLuint vbo_triangle, vbo_triangle_colors;
+GLint uniform_fade;
 
 char* file_read(const char* filename)
 {
@@ -152,17 +154,31 @@ int main(void)
     fprintf(stderr, "Could not bind attribute %s\n", attribute_name2);
     return 0;
   }
- 
+
+   const char* uniform_name;
+   uniform_name = "fade";
+   uniform_fade = glGetUniformLocation(program, uniform_name);
+   if (uniform_fade == -1) {
+     fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+     return 0;
+   }
+
+   int t = 1;
+   
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window))
     {
-      /* glEnable(GL_BLEND); */
-      /* glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); */
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       
       glClearColor(1.0, 1.0, 1.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT);
  
       glUseProgram(program);
+
+      t += 1;
+      float fade = 0.5f + cosf(t * 0.1f) * 0.5f;
+      glUniform1f(uniform_fade, fade);
 
       glEnableVertexAttribArray(attribute_coord2d);
       glEnableVertexAttribArray(attribute_v_color);
