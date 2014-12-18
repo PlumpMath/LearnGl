@@ -10,5 +10,17 @@ GL_STATIC_DRAW indicates that we will not write to this buffer often, and that t
 
 
 
+## Attempt at explaining the render loop when using VBO:s
+
+1. Clear
+2. Set GLSL program
+3. Enable correct vertex attribute array 
+4. Bind buffer
+5. Set vertext attribute point
+6. Draw array
+7. Swap buffers
+8. Poll events
+
+
 
 
