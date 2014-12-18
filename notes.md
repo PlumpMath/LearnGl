@@ -15,8 +15,8 @@ GL_STATIC_DRAW indicates that we will not write to this buffer often, and that t
 1. Clear
 2. Set GLSL program
 3. Enable correct vertex attribute array 
-4. Bind buffer (set data from arrays basically)
-5. Set vertext attribute pointers (tell how to interpret data..?)
+4. Bind buffer (upload data from my array to opengl array)
+5. Set vertext attribute pointers (set attributes in shader programs)
 6. Draw!
 7. Swap buffers
 8. Poll events
@@ -25,5 +25,8 @@ GL_STATIC_DRAW indicates that we will not write to this buffer often, and that t
 
 A 'varying' variable in a shader has to exist in both the vertex- and the fragment shader.
 
+
+Attributes can change for the various vertices
+Uniforms are the same for all vertices in the vbo
 
 

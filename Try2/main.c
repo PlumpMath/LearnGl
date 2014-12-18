@@ -130,23 +130,14 @@ int main(void)
     return 0;
   }
 
-  GLfloat triangle_vertices[] = {
-    0.0,  0.0,
-    0.8, 0.0,
-    0.0, 0.5,
+  GLfloat triangle_attributes[] = {
+     0.0,  0.8,   1.0, 1.0, 0.0,
+    -0.8, -0.8,   0.0, 1.0, 1.0,
+     0.8, -0.8,   1.0, 0.0, 0.0,
   };
   glGenBuffers(1, &vbo_triangle);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
-
-  GLfloat triangle_colors[] = {
-    0.0, 0.0, 0.0,
-    1.0, 0.5, 0.5,
-    1.0, 0.7, 0.7,
-  };
-  glGenBuffers(1, &vbo_triangle_colors);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_colors);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_colors), triangle_colors, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_attributes), triangle_attributes, GL_STATIC_DRAW);
 
   const char* attribute_name = "coord2d";
   attribute_coord2d = glGetAttribLocation(program, attribute_name);
@@ -174,25 +165,25 @@ int main(void)
       glUseProgram(program);
 
       glEnableVertexAttribArray(attribute_coord2d);
+      glEnableVertexAttribArray(attribute_v_color);
       glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+      
       glVertexAttribPointer(
 			    attribute_coord2d, // attribute
 			    2,                 // number of elements per vertex, here (x,y)
 			    GL_FLOAT,          // the type of each element
 			    GL_FALSE,          // take our values as-is
-			    0,                 // no extra data between each position
+			    5 * sizeof(GLfloat),
 			    0                  // offset of first element
 			    );
  
-      glEnableVertexAttribArray(attribute_v_color);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_colors);
       glVertexAttribPointer(
 			    attribute_v_color, // attribute
 			    3,                 // number of elements per vertex, here (x,y)
 			    GL_FLOAT,          // the type of each element
 			    GL_FALSE,          // take our values as-is
-			    0,                 // no extra data between each position
-			    0                  // offset of first element
+			    5 * sizeof(GLfloat),                 // no extra data between each position
+			    (GLvoid*) (2 * sizeof(GLfloat))
 			    );
 
       glDrawArrays(GL_TRIANGLES, 0, 3);
