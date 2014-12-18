@@ -15,12 +15,15 @@ GL_STATIC_DRAW indicates that we will not write to this buffer often, and that t
 1. Clear
 2. Set GLSL program
 3. Enable correct vertex attribute array 
-4. Bind buffer
-5. Set vertext attribute point
-6. Draw array
+4. Bind buffer (set data from arrays basically)
+5. Set vertext attribute pointers (tell how to interpret data..?)
+6. Draw!
 7. Swap buffers
 8. Poll events
 
+
+
+A 'varying' variable in a shader has to exist in both the vertex- and the fragment shader.
 
 
 

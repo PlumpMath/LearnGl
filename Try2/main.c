@@ -4,8 +4,8 @@
 #include <GLFW/glfw3.h>
 
 GLuint program;
-GLint attribute_coord2d;
-GLuint vbo_triangle;
+GLint attribute_coord2d, attribute_v_color;
+GLuint vbo_triangle, vbo_triangle_colors;
 
 char* file_read(const char* filename)
 {
@@ -89,81 +89,91 @@ GLuint create_shader(const char* filename, GLenum type)
 
 int main(void)
 {
-    GLFWwindow* window;
+  GLFWwindow* window;
 
-    /* Initialize the library */
-    if (!glfwInit()) {
-      return -1;
-    }
+  /* Initialize the library */
+  if (!glfwInit()) {
+    return -1;
+  }
 
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "ERIK IS LEARNING", NULL, NULL);
-    if (!window)
+  /* Create a windowed mode window and its OpenGL context */
+  window = glfwCreateWindow(640, 480, "ERIK IS LEARNING", NULL, NULL);
+  if (!window)
     {
       glfwTerminate();
       return -1;
     }
 
-    glfwMakeContextCurrent(window);
+  glfwMakeContextCurrent(window);
 
-    /* Must initialize glew before starting to use open gl functions (or it will segfault) */
-    GLenum glew_status = glewInit();
-    if (glew_status != GLEW_OK) {
-      fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
-      return EXIT_FAILURE;
-    }
+  /* Must initialize glew before starting to use open gl functions (or it will segfault) */
+  GLenum glew_status = glewInit();
+  if (glew_status != GLEW_OK) {
+    fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
+    return EXIT_FAILURE;
+  }
 
-    GLuint vs, fs;
-    if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return 0;
-    if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return 0;
+  GLuint vs, fs;
+  if ((vs = create_shader("triangle.v.glsl", GL_VERTEX_SHADER))   == 0) return 0;
+  if ((fs = create_shader("triangle.f.glsl", GL_FRAGMENT_SHADER)) == 0) return 0;
     
-    /* GLSL program */
-    GLint link_ok = GL_FALSE;
-    program = glCreateProgram();
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
-    if (!link_ok) {
-      fprintf(stderr, "glLinkProgram:");
-      print_log(program);
-      return 0;
-    }
+  /* GLSL program */
+  GLint link_ok = GL_FALSE;
+  program = glCreateProgram();
+  glAttachShader(program, vs);
+  glAttachShader(program, fs);
+  glLinkProgram(program);
+  glGetProgramiv(program, GL_LINK_STATUS, &link_ok);
+  if (!link_ok) {
+    fprintf(stderr, "glLinkProgram:");
+    print_log(program);
+    return 0;
+  }
 
-    const char* attribute_name = "coord2d";
-    attribute_coord2d = glGetAttribLocation(program, attribute_name);
-    if (attribute_coord2d == -1) {
-      fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-      return 0;
-    }
+  GLfloat triangle_vertices[] = {
+    0.0,  0.0,
+    0.8, 0.0,
+    0.0, 0.5,
+  };
+  glGenBuffers(1, &vbo_triangle);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
 
-    GLfloat triangle_vertices[] = {
-      0.0,  0.8,
-      -0.8, -0.5,
-      0.8, -0.5,
-      -0.8, -0.5,
-      0.0, -0.9,
-      0.8, -0.5,
-      -1.0, 0.0,
-      0.0, 0.0,
-      -0.5, 1.0,
-    };
-    glGenBuffers(1, &vbo_triangle);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
+  GLfloat triangle_colors[] = {
+    0.0, 0.0, 0.0,
+    1.0, 0.5, 0.5,
+    1.0, 0.7, 0.7,
+  };
+  glGenBuffers(1, &vbo_triangle_colors);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_colors);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_colors), triangle_colors, GL_STATIC_DRAW);
+
+  const char* attribute_name = "coord2d";
+  attribute_coord2d = glGetAttribLocation(program, attribute_name);
+  if (attribute_coord2d == -1) {
+    fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
+    return 0;
+  }
+
+  const char* attribute_name2 = "v_color";
+  attribute_v_color = glGetAttribLocation(program, attribute_name2);
+  if (attribute_v_color == -1) {
+    fprintf(stderr, "Could not bind attribute %s\n", attribute_name2);
+    return 0;
+  }
  
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
+  /* Loop until the user closes the window */
+  while (!glfwWindowShouldClose(window))
     {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      /* glEnable(GL_BLEND); */
+      /* glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); */
       
       glClearColor(1.0, 1.0, 1.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT);
  
       glUseProgram(program);
+
       glEnableVertexAttribArray(attribute_coord2d);
-      /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
       glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
       glVertexAttribPointer(
 			    attribute_coord2d, // attribute
@@ -174,17 +184,27 @@ int main(void)
 			    0                  // offset of first element
 			    );
  
-      /* Push each element in buffer_vertices to the vertex shader */
-      glDrawArrays(GL_TRIANGLES, 0, 9);
+      glEnableVertexAttribArray(attribute_v_color);
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_colors);
+      glVertexAttribPointer(
+			    attribute_v_color, // attribute
+			    3,                 // number of elements per vertex, here (x,y)
+			    GL_FLOAT,          // the type of each element
+			    GL_FALSE,          // take our values as-is
+			    0,                 // no extra data between each position
+			    0                  // offset of first element
+			    );
+
+      glDrawArrays(GL_TRIANGLES, 0, 3);
  
       glfwSwapBuffers(window);
       glfwPollEvents();
     }
 
-    glDeleteProgram(program);
-    glDeleteBuffers(1, &vbo_triangle);
+  glDeleteProgram(program);
+  glDeleteBuffers(1, &vbo_triangle);
     
-    glfwTerminate();
-    return 0;
+  glfwTerminate();
+  return 0;
 }
 
