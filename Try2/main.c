@@ -5,6 +5,7 @@
 
 GLuint program;
 GLint attribute_coord2d;
+GLuint vbo_triangle;
 
 char* file_read(const char* filename)
 {
@@ -134,7 +135,18 @@ int main(void)
     if (attribute_coord2d == -1) {
       fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
       return 0;
-    } 
+    }
+
+    GLfloat triangle_vertices[] = {
+      0.0,  0.8,
+      -0.8, -0.5,
+      0.8, -0.5,
+      -0.8, -0.5,
+      0.0, -0.9,
+      0.8, -0.5,
+    };
+    glGenBuffers(1, &vbo_triangle);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -143,16 +155,9 @@ int main(void)
       glClear(GL_COLOR_BUFFER_BIT);
  
       glUseProgram(program);
+
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
       glEnableVertexAttribArray(attribute_coord2d);
-      
-      GLfloat triangle_vertices[] = {
-	0.0,  0.95,
-	-0.2, -0.8,
-	0.8, -0.8,
-	0.8, -0.8,
-	0.9, -0.9,
-	0.7, -0.9,
-      };
       
       /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
       glVertexAttribPointer(attribute_coord2d, // attribute
@@ -171,6 +176,8 @@ int main(void)
     }
 
     glDeleteProgram(program);
+    glDeleteBuffers(1, &vbo_triangle);
+    
     glfwTerminate();
     return 0;
 }
