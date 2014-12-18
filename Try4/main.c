@@ -104,11 +104,8 @@ int main(void)
     mat4x4_look_at(tmpa, (vec3){sin(rotate)*64 + 32,100,cos(rotate)*64 + 32}, (vec3){32,32,32}, (vec3){0,64,0});
     mat4x4_mul(transform, tmpb, tmpa);
 
-<<<<<<< HEAD
-=======
     //mat4x4 transform = (mat4x4){ 0.0, 0.0, 0.0, 1.0 };
-    
->>>>>>> 0aa349f59ec94db338e4955d6116de375f8a95b4
+
     glUniformMatrix4fv(uniform_m_transform, 1, GL_FALSE, (const float*)transform);
       
     glEnable(GL_BLEND);
