@@ -144,32 +144,38 @@ int main(void)
       -0.8, -0.5,
       0.0, -0.9,
       0.8, -0.5,
+      -1.0, 0.0,
+      0.0, 0.0,
+      -0.5, 1.0,
     };
     glGenBuffers(1, &vbo_triangle);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
-
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_vertices), triangle_vertices, GL_STATIC_DRAW);
+ 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      
       glClearColor(1.0, 1.0, 1.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT);
  
       glUseProgram(program);
-
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
       glEnableVertexAttribArray(attribute_coord2d);
-      
       /* Describe our vertices array to OpenGL (it can't guess its format automatically) */
-      glVertexAttribPointer(attribute_coord2d, // attribute
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
+      glVertexAttribPointer(
+			    attribute_coord2d, // attribute
 			    2,                 // number of elements per vertex, here (x,y)
 			    GL_FLOAT,          // the type of each element
 			    GL_FALSE,          // take our values as-is
 			    0,                 // no extra data between each position
-			    triangle_vertices  // pointer to the C array
+			    0                  // offset of first element
 			    );
  
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      glDisableVertexAttribArray(attribute_coord2d);
+      /* Push each element in buffer_vertices to the vertex shader */
+      glDrawArrays(GL_TRIANGLES, 0, 9);
  
       glfwSwapBuffers(window);
       glfwPollEvents();
