@@ -31,3 +31,7 @@ Uniforms are the same for all vertices in the vbo
 
 
 
+Matrices affect the object from right to left.
+
+
+

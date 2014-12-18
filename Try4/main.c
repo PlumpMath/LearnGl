@@ -4,11 +4,13 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "LoadShaders.h"
+#include <Linmath.h>
 
 GLuint program;
 GLuint vbo_triangle;
 GLint attribute_coord3d, attribute_v_color;
 GLint uniform_fade;
+GLint uniform_m_transform;
 
 struct attributes {
   GLfloat coord3d[3];
@@ -82,13 +84,27 @@ int main(void)
     return 0;
   }
 
-  int t = 1;
+  const char* uniform_name = "m_transform";
+  uniform_m_transform = glGetUniformLocation(program, uniform_name);
+  if (uniform_m_transform == -1) {
+    fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+    return 0;
+  }
+
+  float rotate = 0.0f;
+  
    
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
-    t += 1;
-    float fade = 0.5f + cosf(t * 0.1f) * 0.5f;
-    glUniform1f(uniform_fade, fade);
+
+    rotate += 0.01f;
+    
+    mat4x4 transform, tmpa, tmpb;
+    mat4x4_perspective(tmpb, 70, 1, 0.5f, 2000);
+    mat4x4_look_at(tmpa, (vec3){sin(rotate)*64 + 32,100,cos(rotate)*64 + 32}, (vec3){32,32,32}, (vec3){0,64,0});
+    mat4x4_mul(transform, tmpb, tmpa);
+
+    glUniformMatrix4fv(uniform_m_transform, 1, GL_FALSE, (const float*)transform);
       
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -97,7 +113,7 @@ int main(void)
     glClear(GL_COLOR_BUFFER_BIT);
  
     glUseProgram(program);
-
+    
     glEnableVertexAttribArray(attribute_coord3d);
     glEnableVertexAttribArray(attribute_v_color);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle);
