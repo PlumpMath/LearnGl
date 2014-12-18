@@ -23,7 +23,6 @@ int main(void)
       return -1;
     }
 
-    /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
     /* Must initialize glew before starting to use open gl functions (or it will segfault) */
@@ -33,7 +32,7 @@ int main(void)
       return EXIT_FAILURE;
     }
 
-    GLint compile_ok = GL_FALSE, link_ok = GL_FALSE;
+    GLint compile_ok = GL_FALSE;
 
     /* Vertex shader */
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
@@ -59,8 +58,8 @@ int main(void)
     const char *fs_source =
       "#version 120           \n"
       "void main(void) {        "
-      "  gl_FragColor[0] = 1.0; "
-      "  gl_FragColor[1] = 0.0; "
+      "  gl_FragColor[0] = gl_FragCoord.x/640.0; "
+      "  gl_FragColor[1] = 0.5; "
       "  gl_FragColor[2] = 1.0; "
       "}                        ";
     
@@ -73,6 +72,7 @@ int main(void)
     }
 
     /* GLSL program */
+    GLint link_ok = GL_FALSE;
     program = glCreateProgram();
     glAttachShader(program, vs);
     glAttachShader(program, fs);
@@ -93,8 +93,6 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-      /* Render here */
-      /* Clear the background as white */
       glClearColor(1.0, 1.0, 1.0, 1.0);
       glClear(GL_COLOR_BUFFER_BIT);
  
@@ -119,14 +117,10 @@ int main(void)
 			    triangle_vertices  // pointer to the C array
 			    );
  
-      /* Push each element in buffer_vertices to the vertex shader */
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glDisableVertexAttribArray(attribute_coord2d);
  
-      /* Swap front and back buffers */
       glfwSwapBuffers(window);
-
-      /* Poll for and process events */
       glfwPollEvents();
     }
 
