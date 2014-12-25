@@ -49,3 +49,6 @@ Use the matrix in the shader like this:
 
 
 
+For each VBO to draw the glVertexAttribPointers has to be set again (they use the currently bound vbo).
+
+
