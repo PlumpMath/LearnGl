@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "LoadShaders.h"
-#include <Linmath.h>
+#include <linmath.h>
 
 GLuint program;
 GLuint vbo_triangle;
@@ -27,7 +27,7 @@ int main(void)
   }
 
   /* Create a windowed mode window and its OpenGL context */
-  window = glfwCreateWindow(640, 480, "ERIK IS LEARNING", NULL, NULL);
+  window = glfwCreateWindow(640, 640, "ERIK IS LEARNING", NULL, NULL);
   if (!window)
     {
       glfwTerminate();
@@ -61,9 +61,9 @@ int main(void)
   }
 
   struct attributes triangle_attributes[] = {
-    {{ 0.0,  0.8, 0.0}, {1.0, 1.0, 0.0}},
-    {{-0.8, -0.8, 0.0}, {0.0, 0.0, 1.0}},
-    {{ 0.8, -0.8, 0.0}, {1.0, 0.0, 0.0}}
+    {{ 0.0,  1.0/2, 0.0},    {0.0, 1.0, 1.0}},
+    {{-0.866/2, -0.5/2, 0.0}, {1.0, 1.0, 0.0}},
+    {{ 0.866/2, -0.5/2, 0.0}, {1.0, 0.0, 1.0}}
   };
   
   glGenBuffers(1, &vbo_triangle);
@@ -92,21 +92,28 @@ int main(void)
   }
 
   float rotate = 0.0f;
-  
    
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window)) {
 
     rotate += 0.01f;
+    float angle = rotate;
+
+    /* float rotmat[] = {cosf( angle ), -sinf( angle ), 0.0, 0.0, */
+    /* 		      sinf( angle ),  cosf( angle ), 0.0, 0.0, */
+    /* 		      0.0,           0.0,            1.0, 0.0, */
+    /* 		      0.0,           0.0,            0.0, 1.0}; */
+
+    mat4x4 M;
+    mat4x4_identity(M);
+
+    mat4x4 M2;
+    mat4x4_identity(M2);
     
-    mat4x4 transform, tmpa, tmpb;
-    mat4x4_perspective(tmpb, 70, 1, 0.5f, 2000);
-    mat4x4_look_at(tmpa, (vec3){sin(rotate)*64 + 32,100,cos(rotate)*64 + 32}, (vec3){32,32,32}, (vec3){0,64,0});
-    mat4x4_mul(transform, tmpb, tmpa);
-
-    //mat4x4 transform = (mat4x4){ 0.0, 0.0, 0.0, 1.0 };
-
-    glUniformMatrix4fv(uniform_m_transform, 1, GL_FALSE, (const float*)transform);
+    mat4x4_rotate(M2, M, 0.0f, 0.0f, 1.0f, angle);
+    //mat4x4_translate_in_place(M2, 0.3f, -0.2f, 0.0f);
+    
+    glUniformMatrix4fv(uniform_m_transform, 1, GL_FALSE, M2);
       
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -139,6 +146,8 @@ int main(void)
  
     /* Push each element in buffer_vertices to the vertex shader */
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    //glDrawArrays(GL_LINES, 0, 3);
  
     glDisableVertexAttribArray(attribute_coord3d);
     glDisableVertexAttribArray(attribute_v_color);
